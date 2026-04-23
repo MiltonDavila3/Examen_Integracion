@@ -21,7 +21,7 @@ public class FileTransferRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("file:input?readLock=changed")
+        from("file:input?readLock=changed&move=../procesados/${file:name}")
                 .filter(header("CamelFileName").endsWith(".csv"))
                 .log("Procesando archivo: ${file:name} a las ${date:now:yyyy-MM-dd HH:mm:ss}")
                 .convertBodyTo(String.class)
@@ -35,11 +35,8 @@ public class FileTransferRoute extends RouteBuilder {
                 .doCatch(IllegalArgumentException.class)
                 .log(LoggingLevel.WARN,
                         "Archivo invalido: ${file:name}. Motivo: ${exception.message}")
-                .setHeader(Exchange.FILE_NAME,
-                        simple("${file:name.noext}_${date:now:yyyy-MM-dd_HHmmss}.${file:ext}"))
                 .to("file:error")
-                .log(LoggingLevel.WARN,
-                        "Archivo invalido enviado a error como ${header.CamelFileName}")
+                .log(LoggingLevel.WARN, "Archivo invalido enviado a error como ${file:name}")
                 .end();
     }
 
