@@ -1,7 +1,6 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.ResolverStyle;
 import java.util.Set;
 
 import org.apache.camel.Exchange;
@@ -12,9 +11,7 @@ import org.apache.camel.main.Main;
 public class FileTransferRoute extends RouteBuilder {
     private static final String EXPECTED_HEADER = "patient_id,full_name,appointment_date,insurance_code";
     private static final Set<String> VALID_INSURANCE = Set.of("IESS", "PRIVADO", "NINGUNO");
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
-            .ofPattern("M/d/uuuu")
-            .withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
@@ -83,21 +80,28 @@ public class FileTransferRoute extends RouteBuilder {
                 throw new IllegalArgumentException("Fila " + (i + 1) + " tiene campos vacios");
             }
 
-            if (!patientId.matches("\\\\d+")) {
+            if (!patientId.matches("\\d+")) {
                 throw new IllegalArgumentException("Fila " + (i + 1) + ": patient_id debe ser numerico");
             }
 
-            try {
-                LocalDate.parse(appointmentDate, DATE_FORMATTER);
-            } catch (DateTimeParseException ex) {
+            if (!isValidAppointmentDate(appointmentDate)) {
                 throw new IllegalArgumentException("Fila " + (i + 1)
-                        + ": appointment_date invalida. Formato esperado M/d/yyyy (ej: 5/13/2026)");
+                        + ": appointment_date invalida. Formato esperado yyyy-MM-dd (ej: 2026-05-13)");
             }
 
             if (!VALID_INSURANCE.contains(insurance)) {
                 throw new IllegalArgumentException("Fila " + (i + 1)
                         + ": insurance_code invalido. Valores permitidos: IESS, PRIVADO, NINGUNO");
             }
+        }
+    }
+
+    private boolean isValidAppointmentDate(String appointmentDate) {
+        try {
+            LocalDate.parse(appointmentDate, DATE_FORMATTER);
+            return true;
+        } catch (DateTimeParseException ignored) {
+            return false;
         }
     }
 }
