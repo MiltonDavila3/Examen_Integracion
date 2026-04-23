@@ -1,0 +1,37 @@
+openapi: 3.0.0
+info:
+  title: API de Pre-registros SaludVital
+  version: 1.0.0
+  description: API para integrar el Sistema de Admisiones con Facturación.
+paths:
+  /api/v1/pre-registros:
+    post:
+      summary: Envía un nuevo paciente pre-registrado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - patient_id
+                - full_name
+                - appointment_date
+                - insurance_code
+              properties:
+                patient_id:
+                  type: string
+                full_name:
+                  type: string
+                appointment_date:
+                  type: string
+                  format: date
+                  example: "2026-04-22"
+                insurance_code:
+                  type: string
+                  enum: [IESS, PRIVADO, NINGUNO]
+      responses:
+        "201":
+          description: Pre-registro creado exitosamente para facturación.
+        "400":
+          description: Datos inválidos o incompletos.
